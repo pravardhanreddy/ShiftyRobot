@@ -1,0 +1,8 @@
+<launch>
+<!--
+<node name="firstnode" pkg=“rosbot_amr" type="rosbot_turn" />
+-->
+
+<node name="firstnode" pkg="rosbot_amr" type="rosbot.py" />
+
+</launch>
