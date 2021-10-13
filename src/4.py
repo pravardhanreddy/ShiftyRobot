@@ -19,8 +19,8 @@ v_inc = 0.01
 
 point = 1
 
-radius = 1
-n_points = 10
+radius = 0.5
+n_points = 150
 goals = []
 i = 0
 for i in range(n_points):
@@ -61,17 +61,18 @@ def main():
 	i = 0
 	while not rospy.is_shutdown():
 
-		if (abs(x-xg) < 0.2) and (abs(y-yg) < 0.2):
-			xg,yg = goals[i % n_points]
-			i += 1
+		#if (abs(x-xg) < 0.2) and (abs(y-yg) < 0.2):
+		#	xg,yg = goals[i % n_points]
+		#	i += 1
 
-
-		#vd = 0.5 * sqrt((xg-x)**2 + (yg-y)**2)
+		xg,yg = goals[i % n_points]
+		i += 1
+		vd = 0.5 * sqrt((xg-x)**2 + (yg-y)**2)
 		
 		theta = atan2(yg-y,xg-x)
 
 		#vel.linear.x = min(max(vd,-v_max), v_max)
-		vel.linear.x = 0.3
+		vel.linear.x = vd
 		vel.angular.z = atan2(sin(theta - yaw), cos(theta-yaw))
 		vel_pub.publish(vel)
 
