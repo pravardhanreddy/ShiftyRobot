@@ -17,12 +17,12 @@ vel = Twist()
 v_max = 0.4
 v_inc = 0.01
 
-xg = 2
+xg = 1.9
 yg = 0
 
 obstacle = False
 thresh = 1
-arc = 180
+arc = 120
 opening = 90
 min_dist = 100
 
@@ -38,10 +38,11 @@ def scanCallback(scan):
 	global obstacle, opening, min_dist
 	s = [scan.ranges[i] for i in range(-arc, arc)]
 	min_dist = min(s)
-	min_index = s.index(min_dist)
+	min_index = s.index(min_dist) - arc
 	min_index = min_index if (min_index < 360) else min_index - 720
 	obstacle = any((scan.ranges[i] < thresh for i in range(-arc, arc)))
 	print(obstacle, min_dist)
+	prev_opening = opening
 	opening = 90
 	i = 0
 	if(obstacle):
@@ -50,11 +51,13 @@ def scanCallback(scan):
 			a = scan.ranges[min_index + i]
 			b = scan.ranges[min_index - i]
 			if(isinf(a) or a > thresh):
-				opening = (min_index + i + 30)/2
-				break
+				opening = (min_index + i + 120)/2
+				if(abs(prev_opening - opening) < 30):
+					break
 			elif(isinf(b) or b > thresh):
-				opening = (min_index - i - 30)/2
-				break
+				opening = (min_index - i - 120)/2
+				if(abs(prev_opening - opening) < 30):
+					break
 		print(opening)
 
 error = 0
@@ -98,7 +101,7 @@ def main():
 		theta = atan2(yg-y,xg-x)
 		heading = atan2(sin(theta-yaw), cos(theta-yaw))
 
-		if ((abs(x-xg) < 0.05) and (abs(y-yg) < 0.05)):
+		if ((abs(x-xg) < 0.2) and (abs(y-yg) < 0.2)):
 			vel.linear.x = 0
 			vel.angular.z = 0
 			vel_pub.publish(vel)
@@ -113,12 +116,13 @@ def main():
 			print(heading)
 
 
-		vd = vx + pid(0.3,vx)
+		#vd = vx + pid(0.3,vx)
 		
 		
 
-		vel.linear.x = min(max(vd,-v_max), v_max)
-		vel.angular.z = 3 * heading
+		#vel.linear.x = min(max(vd,-v_max), v_max)
+		vel.linear.x = 0.15
+		vel.angular.z = min(max(3 * heading,-1), 1)
 		vel_pub.publish(vel)
 
 		#rospy.loginfo(" x: %f , y: %f , Vel: %f , Ang: %f", x, y, vel.linear.x,vel.angular.z)
