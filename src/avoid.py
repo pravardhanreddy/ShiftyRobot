@@ -8,7 +8,7 @@ from sensor_msgs.msg import Range
 from std_msgs.msg import Bool
 from time import sleep
 from random import randint
-from math import atan2,sin,cos,sqrt,isinf, radians
+from math import atan2,sin,cos,sqrt,isinf, radians, degrees
 from tf.transformations import euler_from_quaternion as efq
 
 yaw,x,y,vx = 0,0,0,0
@@ -17,7 +17,7 @@ vel = Twist()
 v_max = 0.4
 v_inc = 0.01
 
-xg = 4
+xg = 1.9
 yg = 0
 
 obstacle = False
@@ -58,7 +58,7 @@ def scanCallback(scan):
 				opening = (min_index - i - 120)/2
 				if(abs(prev_opening - opening) < 30):
 					break
-		print(opening)
+		#print(opening)
 
 error = 0
 prev = 0
@@ -100,6 +100,7 @@ def main():
 
 		theta = atan2(yg-y,xg-x)
 		heading = atan2(sin(theta-yaw), cos(theta-yaw))
+		vd = 0.4
 
 		if ((abs(x-xg) < 0.2) and (abs(y-yg) < 0.2)):
 			vel.linear.x = 0
@@ -113,7 +114,10 @@ def main():
 
 			temp = ((heading * mul) + (opening / mul)) / (mul + 1/mul)
 			heading = atan2(sin(temp), cos(temp))
-			print(heading)
+			#print(heading)
+			if(degrees(abs(heading)) > 30):
+				vd = 0.2 / (2 ** (abs(heading) + 0))
+				print("Slow Down!, " + str(degrees(heading)) + ", " + str(vd))
 
 
 		#vd = vx + pid(0.3,vx)
@@ -121,7 +125,7 @@ def main():
 		
 
 		#vel.linear.x = min(max(vd,-v_max), v_max)
-		vel.linear.x = 0.15
+		vel.linear.x = vd
 		vel.angular.z = min(max(3 * heading,-1), 1)
 		vel_pub.publish(vel)
 
